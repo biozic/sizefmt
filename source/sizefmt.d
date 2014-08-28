@@ -56,6 +56,20 @@ unittest
 }
 
 /++
+Other size types
++/
+alias SizeIEC = SizeBase!(PrefixUse.IEC, "B", " ");
+alias SizeDecimal = SizeBase!(PrefixUse.decimal, "B", " "); /// ditto
+///
+unittest
+{
+    auto size = SizeIEC(500_000_000_000); // size in bytes
+    assert("%.1f".format(size) == "465.7 GiB");
+    assert("%.1f".format(size.binary) == "465.7 GB");
+    assert("%.1f".format(size.decimal) == "500.0 GB");
+}
+
+/++
 Template for a helper struct used to wrap size values of type $(D ulong).
 +/
 struct SizeBase(PrefixUse prefix, string symbol, string space)
