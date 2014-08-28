@@ -100,15 +100,6 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
         sink(symbol);
     }
 
-    /// Returns the size formatted with the "%s" specification.
-    string toString() const
-    {
-        import std.array;
-        auto app = appender!string();
-        this.toString(s => app.put(s), FormatSpec!char("%s"));
-        return app.data;
-    }
-
     /++
     Returns a copy of this size that will be formatted using  
     traditional _binary prefixes.
