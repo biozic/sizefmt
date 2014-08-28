@@ -14,32 +14,11 @@ import std.format;
 version(unittest)
     import std.string;
     
-/++
-The use of prefix when formatting long size values.
-+/
-enum PrefixUse
-{
-    /++
-    Sizes will be formatted using the traditional _binary prefixes, e.g. 1024 bytes
-    = 1 kilobyte = 1 KB.
-    +/
-    binary,
-
-    /++
-    Sizes will be formatted using the _IEC recommandations for binary prefixes
-    equivalent of a multiple of 1024, e.g. 1024 bytes = kibibyte = 1 KiB.
-    +/
-    IEC,
-
-    /++
-    Sizes will be formatted using _decimal prefixes, e.g. 1024 bytes
-    = 1.024 kilobyte = 1.024 KB.
-    +/
-    decimal
-}
-
-static SIPrefixes = cast(immutable) ["", "k", "M", "G", "T", "P", "E", "Z", "Y"];
-static IECPrefixes = cast(immutable) ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"];
+static Prefixes = [
+    ["", "K", "M", "G", "T", "P", "E", "Z", "Y"], // binary
+    ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"], // IEC
+    ["", "k", "M", "G", "T", "P", "E", "Z", "Y"] // decimal
+];
 
 /++
 Default size type (using binary prefixes).
@@ -70,6 +49,30 @@ unittest
 }
 
 /++
+The use of prefix when formatting long size values.
++/
+enum PrefixUse
+{
+    /++
+    Sizes will be formatted using the traditional _binary prefixes, e.g. 1024 bytes
+    = 1 kilobyte = 1 KB.
+    +/
+    binary = 0,
+    
+    /++
+    Sizes will be formatted using the _IEC recommandations for binary prefixes
+    equivalent of a multiple of 1024, e.g. 1024 bytes = kibibyte = 1 KiB.
+    +/
+    IEC = 1,
+    
+    /++
+    Sizes will be formatted using _decimal prefixes, e.g. 1024 bytes
+    = 1.024 kilobyte = 1.024 kB.
+    +/
+    decimal = 2
+}
+
+/++
 Template for a helper struct used to wrap size values of type $(D ulong).
 +/
 struct SizeBase(PrefixUse prefix, string symbol, string space)
@@ -94,10 +97,7 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
         else
             double base = 1024;
 
-        static if (prefix == PrefixUse.IEC)
-            auto prefixes = IECPrefixes;
-        else
-            auto prefixes = SIPrefixes;
+        auto prefixes = Prefixes[prefix];
 
         int order = 0;
         double tmp = size;
@@ -149,7 +149,7 @@ unittest
     assert("%s".format(Size(999)) == "999 B");
     assert("%s".format(Size(1000)) == "1000 B");
     assert("%s".format(Size(1023)) == "1023 B");
-    assert("%g".format(Size(1024)) == "1 kB");
+    assert("%g".format(Size(1024)) == "1 KB");
     assert("%.2f".format(Size(2590000)) == "2.47 MB");
 }
 
