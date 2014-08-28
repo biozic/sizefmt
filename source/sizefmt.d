@@ -9,8 +9,8 @@ enum Prefix
     IEC
 }
 
-enum SIPrefixes = ["", "k", "M", "G", "T", "P", "E", "Z", "Y"];
-enum IECPrefixes = ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"];
+static SIPrefixes = cast(immutable) ["", "k", "M", "G", "T", "P", "E", "Z", "Y"];
+static IECPrefixes = cast(immutable) ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"];
 
 struct SizeBase(Prefix prefix, string symbol = "B", string space = " ")
 {
@@ -28,10 +28,10 @@ struct SizeBase(Prefix prefix, string symbol = "B", string space = " ")
             double base = 1024;
 
         static if (prefix == Prefix.IEC)
-            string[] prefixes = IECPrefixes;
+            auto prefixes = IECPrefixes;
         else
-            string[] prefixes = SIPrefixes;
-            
+            auto prefixes = SIPrefixes;
+
         int order = 0;
         double tmp = size;
         while (tmp > (base - 1))
