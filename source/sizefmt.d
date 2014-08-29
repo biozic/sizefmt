@@ -14,12 +14,6 @@ import std.format;
 version(unittest)
     import std.string;
     
-static Prefixes = [
-    ["", "K", "M", "G", "T", "P", "E", "Z", "Y"], // binary
-    ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"], // IEC
-    ["", "k", "M", "G", "T", "P", "E", "Z", "Y"] // decimal
-];
-
 /++
 Default size type (using binary prefixes).
 +/
@@ -75,10 +69,15 @@ enum PrefixUse
 /++
 Template for a helper struct used to wrap size values of type $(D ulong).
 +/
-struct SizeBase(PrefixUse prefix, string symbol, string space)
+struct SizeBase(PrefixUse prefixUse, string symbol, string spacing)
 {
     ulong size; /// The size that should be formatted
 
+    static if (prefixUse == PrefixUse.decimal)
+        enum double base = 1000;
+    else
+        enum double base = 1024;
+    
     /++
     Formats the size according to the format fmt, automatically choosing the prefix
     and performing the unit conversion.
@@ -88,16 +87,11 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
     +/
     void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const
     {
-        import std.algorithm, std.exception;
-        enforce("sfFeEgGaA".canFind(fmt.spec), new FormatException(
-            "Invalid floating point format specification: " ~ fmt.spec));
+        import std.algorithm;
 
-        static if (prefix == PrefixUse.decimal)
-            double base = 1000;
-        else
-            double base = 1024;
-
-        auto prefixes = Prefixes[prefix];
+        // List of prefixes (the first _ is for no prefix,
+        // the second _ if for kilo, which is special cased.
+        static immutable string PrefixList = "__MGTPEZY";
 
         int order = 0;
         double tmp = size;
@@ -106,11 +100,32 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
             order++;
             tmp = tmp / base;
         }
-        order = min(order, prefixes.length);
+        order = min(order, PrefixList.length);
 
+        // Output the numeric value
         sink.formatValue(size / base^^order, fmt);
-        sink(space);
-        sink(prefixes[order]);
+
+        // Output the spacing sequence
+        sink(spacing);
+
+        // Output the prefix
+        if (order > 0)
+        {
+            if (order == 1)
+            {
+                static if (prefixUse == PrefixUse.decimal)
+                    sink("k");
+                else
+                    sink("K");
+            }
+            else
+                sink(PrefixList[order .. order + 1]);
+
+            static if (prefixUse == PrefixUse.IEC)
+                sink("i");
+        }
+
+        // Output the symbol
         sink(symbol);
     }
 
@@ -120,7 +135,7 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
     +/
     auto binary() const
     {
-        return SizeBase!(PrefixUse.binary, symbol, space)(size);
+        return SizeBase!(PrefixUse.binary, symbol, spacing)(size);
     }
 
     /++
@@ -129,7 +144,7 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
     +/
     auto iec() const
     {
-        return SizeBase!(PrefixUse.IEC, symbol, space)(size);
+        return SizeBase!(PrefixUse.IEC, symbol, spacing)(size);
     }
 
     /++
@@ -138,7 +153,7 @@ struct SizeBase(PrefixUse prefix, string symbol, string space)
     +/
     auto decimal() const
     {
-        return SizeBase!(PrefixUse.decimal, symbol, space)(size);
+        return SizeBase!(PrefixUse.decimal, symbol, spacing)(size);
     }
 }
 
