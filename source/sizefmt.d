@@ -98,7 +98,7 @@ struct SizeBase(PrefixUse prefixUse, string symbol, string spacing)
         while (tmp > (base - 1))
         {
             order++;
-            tmp = tmp / base;
+            tmp /= base;
         }
         order = min(order, PrefixList.length);
 
