@@ -1,9 +1,9 @@
 {
 	"name": "sizefmt",
-    "target": "library",
 	"description": "A small library to format file sizes.",
+	"homepage": "https://github.com/biozic/sizefmt",
+	"authors": ["Nicolas Sicard"],
 	"copyright": "Copyright © 2014, Nicolas Sicard",
-    "homepage": "https://github.com/biozic/sizefmt",
-    "license": "BSL-1.0",
-	"authors": ["Nicolas Sicard"]
+	"targetType": "library",
+	"license": "BSL-1.0"
 }
