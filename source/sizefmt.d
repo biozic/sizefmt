@@ -156,8 +156,8 @@ struct Size
         assert("|%4.1f|".format(Size(2_590_000)) == "| 2.5 MB|");
 
         Size.config.prefixUse = PrefixUse.IEC;
-        assert("|%4.1f|".format(Size(42)) ==        "|  42 B  |");
-        assert("|%4.1f|".format(Size(2_590_000)) == "| 2.5 MiB|");
+        assert("|%s|".format(Size(42)) ==        "|     42 B  |");
+        assert("|%s|".format(Size(2_590_000)) == "|   2.47 MiB|");
     }
 
     /// The current configuration.
@@ -183,6 +183,8 @@ struct Size
         {
             fmt.spec = 'f';
             fmt.precision = 2;
+            if (config.spacing == Spacing.tabular)
+                fmt.width = 7;
         }
 
         // List of prefixes (the first _ is for no prefix,
