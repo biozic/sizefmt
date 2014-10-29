@@ -9,11 +9,8 @@ unittest
 {
     assert("%s".format(Size(1)) == "1 B");
     assert("%s".format(Size(42)) == "42 B");
-    assert("%s".format(Size(999)) == "999 B");
-    assert("%s".format(Size(1000)) == "1000 B");
-    assert("%s".format(Size(1023)) == "1023 B");
     assert("%g".format(Size(1024)) == "1 KB");
-    assert("%.2f".format(Size(2590000)) == "2.47 MB");
+    assert("%.2f".format(Size(2_590_000)) == "2.47 MB");
 }
 ```
 
@@ -37,6 +34,7 @@ unittest
     assert("%s".format(Size(1000)) == "1.00 kO");
     assert("%.2f".format(Size(2_590_000)) == "2.59 MO");
 }
+
 unittest
 {
     Size.config.push();
