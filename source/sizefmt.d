@@ -142,7 +142,7 @@ struct Size
 
         assert("%s".format(Size(1)) == "1 octet");
         assert("%s".format(Size(42)) == "42 octets");
-        assert("%s".format(Size(1000)) == "1 kO", "%s".format(Size(1000)));
+        assert("%s".format(Size(1000)) == "1.00 kO");
         assert("%.2f".format(Size(2_590_000)) == "2.59 MO");
     }
     ///
@@ -152,11 +152,11 @@ struct Size
         scope(exit) Size.config.pop();
 
         Size.config.spacing = Spacing.tabular;
-        assert("|%4.1f|".format(Size(42)) ==        "|42.0 B |");
+        assert("|%4.1f|".format(Size(42)) ==        "|  42 B |");
         assert("|%4.1f|".format(Size(2_590_000)) == "| 2.5 MB|");
 
         Size.config.prefixUse = PrefixUse.IEC;
-        assert("|%4.1f|".format(Size(42)) ==        "|42.0 B  |");
+        assert("|%4.1f|".format(Size(42)) ==        "|  42 B  |");
         assert("|%4.1f|".format(Size(2_590_000)) == "| 2.5 MiB|");
     }
 
@@ -172,10 +172,18 @@ struct Size
 
     The size is formatted as a floating point value, so fmt has to be a
     floating-point-value format specification (s, f, F, e, E, g, G, a or A).
+    But when the unit is just bytes, it is formatted as an integer.
     +/
     void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const
     {
         import std.algorithm, std.array;
+
+        // Override defaults for 's' spec.
+        if (fmt.spec == 's')
+        {
+            fmt.spec = 'f';
+            fmt.precision = 2;
+        }
 
         // List of prefixes (the first _ is for no prefix,
         // the second _ if for kilo, which is special cased.
@@ -193,7 +201,10 @@ struct Size
         order = min(order, PrefixList.length);
 
         // Output the numeric value
-        sink.formatValue(size / base^^order, fmt);
+        if (order > 0)
+            sink.formatValue(size / base^^order, fmt);
+        else
+            sink.formattedWrite("%*d", fmt.width, size);
 
         static app = appender!(char[]);
 
@@ -238,4 +249,3 @@ unittest
     assert("%g".format(Size(1024)) == "1 KB");
     assert("%.2f".format(Size(2590000)) == "2.47 MB");
 }
-
