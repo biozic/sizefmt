@@ -184,7 +184,7 @@ struct Size
             fmt.spec = 'f';
             fmt.precision = 2;
             if (config.spacing == Spacing.tabular)
-                fmt.width = 7;
+                fmt.width = max(7, fmt.precision);
         }
 
         // List of prefixes (the first _ is for no prefix,
