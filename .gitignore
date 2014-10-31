@@ -5,5 +5,4 @@ __dummy.html
 *.obj
 dub.selections.json
 __test__library__
-docs
 libsizefmt.a
