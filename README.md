@@ -14,39 +14,23 @@ unittest
 }
 ```
 
-### Options
-
-You can control the formatting rules with `Size.config.options`:
+You can control the formatting by creating a new type with different options:
 ```d
 unittest
 {
-    Size.config.push();
-    scope(exit) Size.config.pop();
+    alias MySize = SizeBase!(config!`{
+        symbol: "O",
+        unitName: "octet",
+        unitNamePlural: "octets",
+        prefixUse: PrefixUse.IEC,
+        spacing: Spacing.tabular,
+        useNameIfNoPrefix: true
+    }`);
     
-    Size.config.symbol = "O";
-    Size.config.unitName = "octet";
-    Size.config.unitNamePlural = "octets";
-    Size.config.prefixUse = PrefixUse.decimal;
-    Size.config.useNameIfNoPrefix = true;
-
-    assert("%s".format(Size(1)) == "1 octet");
-    assert("%s".format(Size(42)) == "42 octets");
-    assert("%s".format(Size(1000)) == "1.00 kO");
-    assert("%.2f".format(Size(2_590_000)) == "2.59 MO");
-}
-
-unittest
-{
-    Size.config.push();
-    scope(exit) Size.config.pop();
-
-    Size.config.spacing = Spacing.tabular;
-    assert("|%4.1f|".format(Size(42)) ==        "|  42 B |");
-    assert("|%4.1f|".format(Size(2_590_000)) == "| 2.5 MB|");
-
-    Size.config.prefixUse = PrefixUse.IEC;
-    assert("|%s|".format(Size(42)) ==        "|     42 B  |");
-    assert("|%s|".format(Size(2_590_000)) == "|   2.47 MiB|");
+    assert("|%4.1f|".format(MySize(1))         == "|   1 octet |");
+    assert("|%4.1f|".format(MySize(42))        == "|  42 octets|");
+    assert("|%4.1f|".format(MySize(1024))      == "| 1.0 KiO   |");
+    assert("|%4.1f|".format(MySize(2_590_000)) == "| 2.5 MiO   |");
 }
 ```
 
