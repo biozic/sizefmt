@@ -151,28 +151,19 @@ struct Config
         );
     }
 }
-
-/++
-Builds a configuration from a JSON-like string.
-+/
-template config(string configString)
-{
-    enum config = {
-        mixin("Config ret = " ~ configString ~ ";");
-        return ret;
-    }();
-}
 ///
 unittest
 {
-    alias MySize = SizeBase!(config!`{
+    enum Config config = {
         symbol: "O",
         unitName: "octet",
         unitNamePlural: "octets",
         prefixUse: PrefixUse.IEC,
         spacing: Spacing.tabular,
         useNameIfNoPrefix: true
-    }`);
+    };
+
+	alias MySize = SizeBase!config;
     
     assert("|%4.1f|".format(MySize(1))         == "|   1 octet |");
     assert("|%4.1f|".format(MySize(42))        == "|  42 octets|");

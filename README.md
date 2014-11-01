@@ -18,14 +18,16 @@ You can control the formatting by creating a new type with different options:
 ```d
 unittest
 {
-    alias MySize = SizeBase!(config!`{
+    enum Config config = {
         symbol: "O",
         unitName: "octet",
         unitNamePlural: "octets",
         prefixUse: PrefixUse.IEC,
         spacing: Spacing.tabular,
         useNameIfNoPrefix: true
-    }`);
+    };
+
+	alias MySize = SizeBase!config;
     
     assert("|%4.1f|".format(MySize(1))         == "|   1 octet |");
     assert("|%4.1f|".format(MySize(42))        == "|  42 octets|");
