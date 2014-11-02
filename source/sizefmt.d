@@ -32,10 +32,10 @@ struct SizeBase(Config config)
     floating-point-value format specification (s, f, F, e, E, g, G, a or A).
     But when the unit is just bytes, it is formatted as an integer.
     +/
-    void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const
+    void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const @trusted
     {
-        import std.algorithm, std.array;
-        
+        import std.algorithm, std.internal.scopebuffer;
+
         // Override defaults for 's' spec.
         if (fmt.spec == 's')
         {
@@ -70,39 +70,39 @@ struct SizeBase(Config config)
             sink.formattedWrite("%*d", fmt.width, value);
         
         // Prepare the unit part
-        static app = appender!(char[]);
+        char[16] _buf = void;
+        auto buf = ScopeBuffer!char(_buf);
+        scope(exit) buf.free();
         
         static if (config.spacing != Spacing.none)
-            app.put(" ");
+            buf.put(" ");
         
         if (order > 0)
         {
             if (order == 1)
-                app.put(config.prefixUse == PrefixUse.decimal ? "k" : "K");
+                buf.put(config.prefixUse == PrefixUse.decimal ? "k" : "K");
             else
-                app.put(PrefixList[order .. order + 1]);
+                buf.put(PrefixList[order .. order + 1]);
             
             static if (config.prefixUse == PrefixUse.IEC)
-                app.put("i");
+                buf.put("i");
         }
         
         static if (config.useNameIfNoPrefix)
         {
             if (order == 0)
-                app.put(value == 1 ? config.unitName : config.unitNamePlural);
+                buf.put(value == 1 ? config.unitName : config.unitNamePlural);
             else
-                app.put(config.symbol);
+                buf.put(config.symbol);
         }
         else
-            app.put(config.symbol);
+            buf.put(config.symbol);
         
         // Output the unit part
         static if (config.spacing == Spacing.tabular)
-            sink.formattedWrite("%-*s", 1 + config.maxUnitLength, app.data);
+            sink.formattedWrite("%-*s", 1 + config.maxUnitLength, buf[]);
         else
-            sink(app.data);
-        
-        app.clear();
+            sink(buf[]);
     }
 }
 
