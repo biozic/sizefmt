@@ -67,8 +67,13 @@ struct SizeBase(Config config)
         if (order > 0)
             sink.formatValue(value / base^^order, fmt);
         else
-            sink.formattedWrite("%*d", fmt.width, value);
-        
+        {
+            auto ifmt = fmt;
+            ifmt.spec = 'd';
+            ifmt.precision = 0;
+            sink.formatValue(value, ifmt);
+        }
+
         // Prepare the unit part
         char[16] _buf = void;
         auto buf = ScopeBuffer!char(_buf);
@@ -100,7 +105,12 @@ struct SizeBase(Config config)
         
         // Output the unit part
         static if (config.spacing == Spacing.tabular)
-            sink.formattedWrite("%-*s", 1 + config.maxUnitLength, buf[]);
+        {
+            FormatSpec!char sfmt;
+            sfmt.flDash = true;
+            sfmt.width = cast(int) (1 + config.maxUnitLength);
+            sink.formatValue(buf[], sfmt);
+        }
         else
             sink(buf[]);
     }
