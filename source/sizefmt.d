@@ -3,7 +3,7 @@
 This small library allows to easily format file sizes in a human-readable
 format.
 
-Copyright: Copyright 2014, Nicolas Sicard
+Copyright: Copyright 2014-2015, Nicolas Sicard
 Authors: Nicolas Sicard
 License: $(LINK www.boost.org/LICENSE_1_0.txt, Boost License 1.0)
 Source: $(LINK https://github.com/biozic/sizefmt)
@@ -13,7 +13,7 @@ module sizefmt;
 import std.format;
 import std.traits;
 version (unittest) import std.string;
-//debug import std.stdio;
+// debug import std.stdio;
 
 /++
 Wraps a size value of type $(D ulong) which is formatted appropriately
@@ -32,17 +32,16 @@ struct SizeBase(Config config)
     floating-point-value format specification (s, f, F, e, E, g, G, a or A).
     But when the unit is just bytes, it is formatted as an integer.
     +/
-    void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const @trusted
+    void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const
     {
-        import std.algorithm, std.internal.scopebuffer;
+        import std.algorithm : min, max;
+        import std.math : pow;
 
         // Override defaults for 's' spec.
         if (fmt.spec == 's')
         {
             fmt.spec = 'f';
             fmt.precision = 2;
-            if (config.spacing == Spacing.tabular)
-                fmt.width = max(7, fmt.precision);
         }
         
         // List of prefixes (the first _ is for no prefix,
@@ -58,14 +57,14 @@ struct SizeBase(Config config)
         double tmp = value;
         while (tmp > (base - 1))
         {
-            order++;
+            ++order;
             tmp /= base;
         }
         order = min(order, PrefixList.length);
         
         // Output the numeric value
         if (order > 0)
-            sink.formatValue(value / base^^order, fmt);
+            sink.formatValue(value / pow(base, order), fmt);
         else
         {
             auto ifmt = fmt;
@@ -74,45 +73,28 @@ struct SizeBase(Config config)
             sink.formatValue(value, ifmt);
         }
 
-        // Prepare the unit part
-        char[16] _buf = void;
-        auto buf = ScopeBuffer!char(_buf);
-        scope(exit) buf.free();
-        
-        static if (config.spacing != Spacing.none)
-            buf.put(" ");
+        sink(config.spacing);
         
         if (order > 0)
         {
             if (order == 1)
-                buf.put(config.prefixUse == PrefixUse.decimal ? "k" : "K");
+                sink(config.prefixUse == PrefixUse.decimal ? "k" : "K");
             else
-                buf.put(PrefixList[order .. order + 1]);
+                sink(PrefixList[order .. order + 1]);
             
             static if (config.prefixUse == PrefixUse.IEC)
-                buf.put("i");
+                sink("i");
         }
         
         static if (config.useNameIfNoPrefix)
         {
             if (order == 0)
-                buf.put(value == 1 ? config.unitName : config.unitNamePlural);
+                sink(value == 1 ? config.unitName : config.unitNamePlural);
             else
-                buf.put(config.symbol);
+                sink(config.symbol);
         }
         else
-            buf.put(config.symbol);
-        
-        // Output the unit part
-        static if (config.spacing == Spacing.tabular)
-        {
-            FormatSpec!char sfmt;
-            sfmt.flDash = true;
-            sfmt.width = cast(int) (1 + config.maxUnitLength);
-            sink.formatValue(buf[], sfmt);
-        }
-        else
-            sink(buf[]);
+            sink(config.symbol);
     }
 }
 
@@ -147,7 +129,7 @@ struct Config
     PrefixUse prefixUse = PrefixUse.binary; 
     
     /// The spacing between the value and the unit.
-    Spacing spacing = Spacing.singleSpace; 
+    string spacing = " "; 
     
     /// Whether to use the name of the symbol if there is no prefix.
     bool useNameIfNoPrefix = false; 
@@ -169,16 +151,15 @@ unittest
         unitName: "octet",
         unitNamePlural: "octets",
         prefixUse: PrefixUse.IEC,
-        spacing: Spacing.tabular,
         useNameIfNoPrefix: true
     };
 
 	alias MySize = SizeBase!config;
     
-    assert("|%4.1f|".format(MySize(1))         == "|   1 octet |");
-    assert("|%4.1f|".format(MySize(42))        == "|  42 octets|");
-    assert("|%4.1f|".format(MySize(1024))      == "| 1.0 KiO   |");
-    assert("|%4.1f|".format(MySize(2_590_000)) == "| 2.5 MiO   |");
+    assert("%4.1f".format(MySize(1))         == "   1 octet");
+    assert("%4.1f".format(MySize(42))        == "  42 octets");
+    assert("%4.1f".format(MySize(1024))      == " 1.0 KiO");
+    assert("%4.1f".format(MySize(2_590_000)) == " 2.5 MiO");
 }
 
 /++
@@ -203,27 +184,4 @@ enum PrefixUse
     kilobyte = 1.024 kB.
     +/
     decimal
-}
-
-/++
-The type of spacing around the symbol of the size unit.
-+/
-enum Spacing
-{
-    /++
-    No space between the value and the unit.
-    +/
-    none,
-    
-    /++
-    A single space between the value and the unit.
-    +/
-    singleSpace,
-    
-    /++
-    The right amount of space so that sizes can be vertically aligned in a
-    table. In order to achieve this vertical alignement, the value itself must
-    be formatted as a fixed-size string.
-    +/
-    tabular
 }

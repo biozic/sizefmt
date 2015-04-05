@@ -23,16 +23,15 @@ unittest
         unitName: "octet",
         unitNamePlural: "octets",
         prefixUse: PrefixUse.IEC,
-        spacing: Spacing.tabular,
         useNameIfNoPrefix: true
     };
 
 	alias MySize = SizeBase!config;
     
-    assert("|%4.1f|".format(MySize(1))         == "|   1 octet |");
-    assert("|%4.1f|".format(MySize(42))        == "|  42 octets|");
-    assert("|%4.1f|".format(MySize(1024))      == "| 1.0 KiO   |");
-    assert("|%4.1f|".format(MySize(2_590_000)) == "| 2.5 MiO   |");
+    assert("%4.1f".format(MySize(1))         == "   1 octet");
+    assert("%4.1f".format(MySize(42))        == "  42 octets");
+    assert("%4.1f".format(MySize(1024))      == " 1.0 KiO");
+    assert("%4.1f".format(MySize(2_590_000)) == " 2.5 MiO");
 }
 ```
 
