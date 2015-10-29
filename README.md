@@ -7,6 +7,7 @@ A small library to format file sizes.
 ```d
 unittest
 {
+    assert("%s".format(Size(0)) == "0 B");
     assert("%s".format(Size(1)) == "1 B");
     assert("%s".format(Size(42)) == "42 B");
     assert("%g".format(Size(1024)) == "1 KB");
@@ -28,6 +29,7 @@ unittest
 
 	alias MySize = SizeBase!config;
     
+    assert("%4.1f".format(MySize(0))         == "   0 octet");
     assert("%4.1f".format(MySize(1))         == "   1 octet");
     assert("%4.1f".format(MySize(42))        == "  42 octets");
     assert("%4.1f".format(MySize(1024))      == " 1.0 KiO");
@@ -38,4 +40,4 @@ unittest
 ---
 License: BSL 1.0
 
-Copyright 2014, Nicolas Sicard
+Copyright 2014-2015, Nicolas Sicard

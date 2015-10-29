@@ -69,7 +69,7 @@ struct SizeBase(Config config)
         {
             auto ifmt = fmt;
             ifmt.spec = 'd';
-            ifmt.precision = 0;
+            ifmt.precision = 1;
             sink.formatValue(value, ifmt);
         }
 
@@ -89,7 +89,7 @@ struct SizeBase(Config config)
         static if (config.useNameIfNoPrefix)
         {
             if (order == 0)
-                sink(value == 1 ? config.unitName : config.unitNamePlural);
+                sink(value <= 1 ? config.unitName : config.unitNamePlural);
             else
                 sink(config.symbol);
         }
@@ -103,6 +103,7 @@ alias Size = SizeBase!(Config.init);
 ///
 unittest
 {
+    assert("%s".format(Size(0)) == "0 B");
     assert("%s".format(Size(1)) == "1 B");
     assert("%s".format(Size(42)) == "42 B");
     assert("%g".format(Size(1024)) == "1 KB");
@@ -156,6 +157,7 @@ unittest
 
 	alias MySize = SizeBase!config;
     
+    assert("%4.1f".format(MySize(0))         == "   0 octet");
     assert("%4.1f".format(MySize(1))         == "   1 octet");
     assert("%4.1f".format(MySize(42))        == "  42 octets");
     assert("%4.1f".format(MySize(1024))      == " 1.0 KiO");
