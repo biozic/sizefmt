@@ -110,7 +110,21 @@ unittest
     assert("%.2f".format(Size(2_590_000)) == "2.47 MB");
 }
 
+/// Size struct using IEC prefix
+alias IECSize = SizeBase!iecConfig;
+///
+unittest
+{
+    assert("%s".format(IECSize(0)) == "0 B");
+    assert("%s".format(IECSize(1)) == "1 B");
+    assert("%s".format(IECSize(42)) == "42 B");
+    assert("%g".format(IECSize(1024)) == "1 KiB");
+    assert("%.2f".format(IECSize(2_590_000)) == "2.47 MiB");
+}
+
 static assert(__traits(isPOD, Size));
+
+private enum Config iecConfig = { prefixUse: PrefixUse.IEC };
 
 /++
 Configuration of size format.
